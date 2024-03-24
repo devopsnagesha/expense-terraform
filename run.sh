@@ -8,7 +8,7 @@ fi
 
 if [ -z $action ]; then
   echo "Input action (apply|destroy) missing"
-  exit 2
+  exit 1
 fi
 
 rm-rf .terraform/terraform.tf.tfstate
