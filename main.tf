@@ -16,8 +16,8 @@ module "backend" {
   component     = "backend"
   ssh_user      = var.ssh_user
   ssh_pass      = var.ssh_pass
-  env = var.env
-  zone_id = var.zone_id
+  env           = var.env
+  zone_id       = var.zone_id
 }
 
 module "mysql" {
