@@ -3,6 +3,17 @@ resource "aws_instance" "instance" {
   instance_type          = var.instance_type
   vpc_security_group_ids = [data.aws_security_group.selected.id]
 
+  instance market options {
+    market_type = "spot"
+    spot options {
+      instance_interruption_behavior  = "stop"
+      spot_instance_type              = "persistent"
+      interruption_behavior           = "stop"
+
+  }
+
+  }
+
   tags ={
     Name = var.component
     env = var.env
