@@ -7,7 +7,6 @@ resource "aws_instance" "instance" {
     Name    = var.component
     env     = var.env
     monitor ="yes"
-
   }
 }
 
