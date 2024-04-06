@@ -1,7 +1,7 @@
 env=$1
 action=$2
 
-if [ -z $env ]; then
+if [ -z "$env" ]; then
   echo "Input env(dev|qa|state|prod) missing"
   exit 1
 fi
