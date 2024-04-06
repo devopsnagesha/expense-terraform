@@ -3,10 +3,10 @@ resource "aws_instance" "instance" {
   instance_type          = var.instance_type
   vpc_security_group_ids = [data.aws_security_group.selected.id]
 
-tags = {
+  tags = {
     Name    = var.component
-    env     = var.env
     monitor ="yes"
+    env     = var.env
   }
 }
 
@@ -21,7 +21,8 @@ resource "null_resource" "ansible" {
     }
 
     inline = [
-      "sudo pip3.11 install ansible hvac",
+      "sudo pip3.9 install ansible",
+      "sudo pip install hvac",
       "ansible-pull -i localhost, -U https://github.com/devopsnagesha/expense-ansible get-secrets.yml -e env=${var.env} -e role_name=${var.component}  -e vault_token=${var.vault_token}",
       "ansible-pull -i localhost, -U https://github.com/devopsnagesha/expense-ansible expense.yml -e env=${var.env} -e role_name=${var.component} -e @secrets.json -e @app.json",
       "rm -f ~/secrets.json ~/app.json"
