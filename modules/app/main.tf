@@ -22,14 +22,11 @@ resource "null_resource" "ansible" {
 
     inline = [
       "rm -f ~/secrets.json ~/app.json",
-      "sudo pip3.11 install ansible hvac",
+      "sudo pip3.9 install ansible",
+      "sudo pip install hvac",
       "ansible-pull -i localhost, -U https://github.com/devopsnagesha/expense-ansible get-secrets.yml -e env=${var.env} -e role_name=${var.component}  -e vault_token=${var.vault_token}",
       "ansible-pull -i localhost, -U https://github.com/devopsnagesha/expense-ansible expense.yml -e env=${var.env} -e role_name=${var.component} -e @secrets.json -e @app.json",
-    ]
-  }
-  provisioner "remote-exec" {
-    inline = [
-      "rm -f ~/secrets.json ~/app.json"
+
     ]
   }
 }
