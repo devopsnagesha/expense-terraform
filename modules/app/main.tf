@@ -69,8 +69,8 @@ resource "null_resource" "ansible" {
     inline = [
       "rm -f ~/secrets.json ~/app.json",
       "sudo pip3.11 install ansible hvac",
-      "ansible-pull -i localhost, -U https://github.com/devopsnagesha/expense-ansible get-secrets.yml -e env=${var.env} -e role_name=${var.component}  -e vault_token=${var.vault_token}",
-      "ansible-pull -i localhost, -U https://github.com/devopsnagesha/expense-ansible expense.yml -e env=${var.env} -e role_name=${var.component} -e @secrets.json -e @app.json",
+      "ansible-pull -i localhost, -U https://github.com/raghudevopsb78/expense-ansible get-secrets.yml -e env=${var.env} -e role_name=${var.component}  -e vault_token=${var.vault_token}",
+      "ansible-pull -i localhost, -U https://github.com/raghudevopsb78/expense-ansible expense.yml -e env=${var.env} -e role_name=${var.component} -e @secrets.json -e @app.json",
     ]
   }
 
@@ -106,11 +106,14 @@ resource "aws_security_group" "load-balancer" {
   description = "${var.component}-${var.env}-lb-sg"
   vpc_id      = var.vpc_id
 
-  ingress {
-    from_port   = var.app_port
-    to_port     = var.app_port
-    protocol    = "TCP"
-    cidr_blocks = var.lb_app_port_sg_cidr
+  dynamic "ingress" {
+    for_each = var.lb_ports
+    content {
+      from_port   = ingress.value
+      to_port     = ingress.value
+      protocol    = "TCP"
+      cidr_blocks = var.lb_app_port_sg_cidr
+    }
   }
 
   egress {
@@ -164,8 +167,41 @@ resource "aws_lb_target_group_attachment" "main" {
   port             = var.app_port
 }
 
-resource "aws_lb_listener" "front_end" {
-  count             = var.lb_needed ? 1 : 0
+resource "aws_lb_listener" "frontend-http" {
+  count             = var.lb_needed && var.lb_type == "public" ? 1 : 0
+  load_balancer_arn = aws_lb.main[0].arn
+  port              = var.app_port
+  protocol          = "HTTP"
+
+  default_action {
+    type = "redirect"
+
+    redirect {
+      port        = "443"
+      protocol    = "HTTPS"
+      status_code = "HTTP_301"
+    }
+  }
+
+}
+
+resource "aws_lb_listener" "frontend-https" {
+  count             = var.lb_needed && var.lb_type == "public" ? 1 : 0
+  load_balancer_arn = aws_lb.main[0].arn
+  port              = "443"
+  protocol          = "HTTPS"
+  ssl_policy        = "ELBSecurityPolicy-TLS13-1-2-2021-06"
+  certificate_arn   = var.certificate_arn
+
+  default_action {
+    type             = "forward"
+    target_group_arn = aws_lb_target_group.main[0].arn
+  }
+
+}
+
+resource "aws_lb_listener" "backend" {
+  count             = var.lb_needed && var.lb_type != "public" ? 1 : 0
   load_balancer_arn = aws_lb.main[0].arn
   port              = var.app_port
   protocol          = "HTTP"
